@@ -1,0 +1,10 @@
+*.tar.gz
+*.wav
+*.npy
+*.csv
+*.data
+*.names
+/test_labels
+/test_data
+/train_labels
+/train_data
