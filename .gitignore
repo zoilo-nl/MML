@@ -4,6 +4,9 @@
 *.csv
 *.data
 *.names
+/magic04
+/musicnet
+/musicnet_midis
 /test_labels
 /test_data
 /train_labels
