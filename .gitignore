@@ -4,6 +4,7 @@
 *.csv
 *.data
 *.names
+/*_training
 /magic04
 /musicnet
 /musicnet_midis
