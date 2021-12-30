@@ -4,10 +4,13 @@
 *.csv
 *.data
 *.names
+*.h5
+*.mid
 /*_training
 /magic04
 /musicnet
 /musicnet_midis
+/__pycache__
 /test_labels
 /test_data
 /train_labels
