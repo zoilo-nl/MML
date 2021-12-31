@@ -1,53 +1,25 @@
 import os
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import librosa, librosa.display
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras.models import Sequential
-from tensorflow.keras import layers
+from tensorflow.keras import models, layers, callbacks, losses, optimizers
 from sklearn.model_selection import train_test_split
-
-PATH_METADATA = "musicnet_metadata.csv"
-
-PATH_DATA = "musicnet/data/"
-PATH_LABELS = "musicnet/labels/"
-
-PATH_TRAIN_DATA = "musicnet/train_data/"
-PATH_TRAIN_LABELS = "musicnet/train_labels/"
-PATH_TEST_DATA = "musicnet/test_data/"
-PATH_TEST_LABELS = "musicnet/test_labels/"
-
-ORIGINAL_SR = 44100
-TARGET_SR = 16000
-FMIN = librosa.note_to_hz("A0")
-FMIN_MIDI_INDEX = librosa.note_to_midi("A0")
-N_NOTES = 88
-BINS_PER_NOTE = 1
-BINS_PER_OCTAVE = 12 * BINS_PER_NOTE
-N_BINS = N_NOTES * BINS_PER_NOTE
-
-WINDOW_LENGTH = 2048
-HOP_LENGTH = 512
-
-frac_sr = TARGET_SR / ORIGINAL_SR
-sample_indexer = frac_sr / HOP_LENGTH
+from Constants import *
 
 tf.debugging.set_log_device_placement(False)
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
-model = Sequential()
-model.add(layers.BatchNormalization(input_shape=(N_BINS,1,),name="Normalisation"))
-# model.add(layers.LSTM(256,activation=tf.nn.tanh, recurrent_activation=tf.nn.sigmoid,name = "LSTM_1", return_sequences=True, dropout=0.1,recurrent_dropout=0))
-# model.add(layers.LSTM(256,activation=tf.nn.tanh, recurrent_activation=tf.nn.sigmoid,name = "LSTM_2", return_sequences=True, dropout=0.1,recurrent_dropout=0))
-# model.add(layers.LSTM(256,activation=tf.nn.tanh, recurrent_activation=tf.nn.sigmoid,name = "LSTM_3", return_sequences=True, dropout=0.1,recurrent_dropout=0))
-model.add(layers.LSTM(256,activation=tf.nn.tanh, recurrent_activation=tf.nn.sigmoid,name = "LSTM_4", return_sequences=False, dropout=0.1,recurrent_dropout=0))
-model.add(layers.Dense(N_NOTES, activation=tf.nn.sigmoid,name="Output"))
+model = models.Sequential()
+model.add(layers.BatchNormalization(input_shape=(N_BINS,1,), name="Normalization"))
+# model.add(layers.LSTM(256, activation=tf.nn.tanh, recurrent_activation=tf.nn.sigmoid, name="LSTM_1", return_sequences=True, dropout=0.1, recurrent_dropout=0))
+# model.add(layers.LSTM(256, activation=tf.nn.tanh, recurrent_activation=tf.nn.sigmoid, name="LSTM_2", return_sequences=True, dropout=0.1, recurrent_dropout=0))
+# model.add(layers.LSTM(256, activation=tf.nn.tanh, recurrent_activation=tf.nn.sigmoid, name="LSTM_3", return_sequences=True, dropout=0.1, recurrent_dropout=0))
+model.add(layers.LSTM(256, activation=tf.nn.tanh, recurrent_activation=tf.nn.sigmoid, name="LSTM_4", return_sequences=False, dropout=0.1, recurrent_dropout=0))
+model.add(layers.Dense(N_NOTES, activation=tf.nn.sigmoid, name="Output"))
 
 model.compile(
-    loss=tf.keras.losses.BinaryCrossentropy(from_logits=False),
-    optimizer=tf.keras.optimizers.Adam(learning_rate=0.01),
+    loss=losses.BinaryCrossentropy(from_logits=False),
+    optimizer=optimizers.Adam(learning_rate=0.01),
     metrics=['accuracy'])
 model.summary()
 
@@ -75,7 +47,7 @@ batch_size = 100
 epochs = 5
 
 # Create a callback that saves the model's weights every epoch
-cp_callback = tf.keras.callbacks.ModelCheckpoint(
+cp_callback = callbacks.ModelCheckpoint(
     filepath=checkpoint_path, 
     verbose=1, 
     save_weights_only=True,
@@ -83,3 +55,6 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(
 
 with tf.device('/job:localhost/replica:0/task:0/device:GPU:0'):
     history = model.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=epochs, batch_size=batch_size, callbacks=[cp_callback])
+
+np.save('LSTM_training/history.npy', history.history)
+model.save('LSTM_training/model.h5')
