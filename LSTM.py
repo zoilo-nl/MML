@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tensorflow.keras import models, layers, callbacks, losses, optimizers
-from sklearn.model_selection import train_test_split
 from Constants import *
 
 tf.debugging.set_log_device_placement(False)
