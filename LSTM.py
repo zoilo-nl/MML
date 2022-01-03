@@ -47,8 +47,8 @@ epochs = 5
 
 # Create a callback that saves the model's weights every epoch
 cp_callback = callbacks.ModelCheckpoint(
-    filepath=checkpoint_path, 
-    verbose=1, 
+    filepath=checkpoint_path,
+    verbose=1,
     save_weights_only=True,
     save_freq='epoch')
 

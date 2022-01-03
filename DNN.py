@@ -10,12 +10,12 @@ tf.debugging.set_log_device_placement(False)
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
 model = models.Sequential()
-model.add(layers.BatchNormalization(input_shape=(N_BINS,)))
-model.add(layers.Dense(1024, activation=tf.nn.relu))
-# model.add(layers.Dense(1024, activation=tf.nn.relu, input_shape=(N_BINS,)))
-model.add(layers.Dropout(0.2))
+# model.add(layers.BatchNormalization(input_shape=(N_BINS,)))
+# model.add(layers.Dense(1024, activation=tf.nn.relu))
+model.add(layers.Dense(1024, activation=tf.nn.relu, input_shape=(N_BINS,)))
+model.add(layers.Dropout(0.1))
 model.add(layers.Dense(256, activation=tf.nn.relu))
-model.add(layers.Dropout(0.2))
+model.add(layers.Dropout(0.1))
 model.add(layers.Dense(N_NOTES, activation=tf.nn.sigmoid))
 
 model.compile(
@@ -45,16 +45,18 @@ y_test = np.concatenate([np.load(PATH_TEST_LABELS+fname) for fname in test_files
 checkpoint_path = "DNN_training/{epoch}.ckpt"
 checkpoint_dir = os.path.dirname(checkpoint_path)
 batch_size = 100
-epochs = 5
+epochs = 10
 
 # Create a callback that saves the model's weights every epoch
 cp_callback = callbacks.ModelCheckpoint(
-    filepath=checkpoint_path, 
-    verbose=1, 
+    filepath=checkpoint_path,
+    verbose=1,
     save_weights_only=True,
     save_freq='epoch')
 
-history = model.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=epochs, batch_size=batch_size, callbacks=[cp_callback])
+# with tf.device('/job:localhost/replica:0/task:0/device:GPU:0'):
+with tf.device("/CPU:0"):
+    history = model.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=epochs, batch_size=batch_size, callbacks=[cp_callback])
 
 np.save('DNN_training/history.npy', history.history)
 model.save('DNN_training/model.h5')
